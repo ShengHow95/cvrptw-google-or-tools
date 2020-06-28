@@ -65,7 +65,8 @@ def print_solution(data, manager, routing, solution):
             # Demands
             route_load += data['demands'][node_index]
 
-            plan_output += ' {0} Load({1}),Time({2},{3}) -> '.format(node_index, route_load, solution.Min(time_var), solution.Max(time_var))
+            # plan_output += ' {0} Load({1}),Time({2},{3}) -> '.format(node_index, route_load, solution.Min(time_var), solution.Max(time_var))
+            plan_output += ' {0} Load({1}),Time({2}) -> '.format(node_index, data['demands'][node_index], solution.Min(time_var))
             previous_index = index
             index = solution.Value(routing.NextVar(index))
             
@@ -80,7 +81,8 @@ def print_solution(data, manager, routing, solution):
                 route_distance += data['distance_matrix'][0][index]
         
         time_var = time_dimension.CumulVar(index)
-        plan_output += ' {0} Load({1}),Time({2},{3})\n'.format(manager.IndexToNode(index), route_load, solution.Min(time_var), solution.Max(time_var))
+        # plan_output += ' {0} Load({1}),Time({2},{3})\n'.format(manager.IndexToNode(index), route_load, solution.Min(time_var), solution.Max(time_var))
+        plan_output += ' {0} Load({1}),Time({2})\n'.format(manager.IndexToNode(index), data['demands'][0], solution.Min(time_var))
         plan_output += 'Distance of the route: {}m\n'.format(route_distance)
         plan_output += 'Load of the route: {}kg\n'.format(route_load)
         plan_output += 'Time of the route: {}min\n'.format(solution.Min(time_var))
@@ -156,7 +158,7 @@ def main():
     time = 'Time'
     routing.AddDimension(
         time_callback_index,
-        15,  # allow waiting time
+        0,  # allow waiting time
         600,  # maximum time per vehicle
         True,  # Don't force start cumul to zero.
         time)
@@ -183,8 +185,11 @@ def main():
 
     # Setting first solution heuristic.
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
-    search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+    # search_parameters.local_search_metaheuristic = (routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT)
+    search_parameters.local_search_metaheuristic = (routing_enums_pb2.LocalSearchMetaheuristic.TABU_SEARCH)
+    search_parameters.time_limit.seconds = 300
+    search_parameters.first_solution_strategy = (routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+    search_parameters.log_search = True
 
     # Solve the problem.
     solution = routing.SolveWithParameters(search_parameters)

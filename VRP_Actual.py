@@ -89,6 +89,8 @@ def main():
     search_parameters.first_solution_strategy = (
         routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
 
+    print(search_parameters)
+
     # Solve the problem.
     solution = routing.SolveWithParameters(search_parameters)
 
